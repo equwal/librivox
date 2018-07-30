@@ -1,6 +1,3 @@
 (defpackage :librivox
-  (:use :cl :cl-user)
-  ;(:export )
-  )
+  (:use :cl :drakma :utils))
 (in-package :librivox)
-(defun test (x) x)

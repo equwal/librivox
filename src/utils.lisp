@@ -1,5 +1,1 @@
-(defpackage :utils
-  (:use :cl :cl-user)
-  ;(:export )
-  )
-(in-package :utils)
+utils.lisp
