@@ -15,7 +15,8 @@
 (defun seconds (seconds)
   (nth-digit 0 seconds 60))
 (defun processor-cores ()
-  (run-line-integer-output "grep -c ^processor /proc/cpuinfo~*"))
+  #+linux (run-line-integer-output "grep -c ^processor /proc/cpuinfo~*")
+  #-linux 1)
 (defun convert (image-filename output-filename zip-filename)
   "Convert the zip to video."
   ;; ~A for the download directory, ~:*~A after the first.
