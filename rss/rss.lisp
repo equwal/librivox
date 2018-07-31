@@ -1,12 +1,3 @@
-(defpackage :rss
-  (:use :cl :drakma :utils :cl-feedparser)
-  (:import-from :drakma
-		:http-request)
-  (:import-from :utils
-		:remove-after)
-  ;(:import-from :feedparser)
-  ;(:export )
-  )
 (in-package :rss)
 (defvar *persistence* "persistent.lisp")
 #|(let ((x (parse-feed "https://librivox.org/rss/latest_releases")))

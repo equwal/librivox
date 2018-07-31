@@ -1,8 +1,9 @@
 (asdf:defsystem :librivox
   :serial t
-  :depends-on (:drakma :uiop :rss :youtube)
+  :depends-on (:drakma :uiop :cl-feedparser :bordeaux-threads)
   :description "Librivox auto downloader/youtube uploader."
-  :components ((:file "utils")
-	       (:file "src/librivox")
-	       (:file "src/ffmpeg")))
+  :components ((:file "packages")
+	       (:file "utils")
+	       (:file "src/bash")
+	       (:file "src/librivox")))
 

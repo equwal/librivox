@@ -1,6 +1,3 @@
-(defpackage :librivox
-  (:use :cl :drakma :utils :uiop)
-  (:import-from :uiop
-		:run-program))
 (in-package :librivox)
+(defparameter *max-threads* (processor-cores))
 (defvar *url* "https://librivox.org/rss/latest_releases")
