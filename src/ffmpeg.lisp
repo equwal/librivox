@@ -1,10 +1,5 @@
 (in-package :librivox)
-;; As far as I can tell this is a common way of determining max threads.
-;; FFMPEG does it automatically.
 (defvar *downloads-dir* "/home/jose/common-lisp/librivox/downloads/")
-(defparameter *max-threads* #+multithreading (processor-cores)
-	      #- multithreading 1)
-(defvar *url* "https://librivox.org/rss/latest_releases")
 (defun run-line* (code-string &optional (output *bash-output*))
   (run-line (format nil code-string *downloads-dir*) :output output))
 (defun run-line*-integer-output (code-string)
@@ -19,13 +14,11 @@
 (defun seconds (seconds)
   (nth-digit 0 seconds 60))
 (defun processor-cores ()
-  #+(and linux multithreading) (run-line*-integer-output "grep -c ^processor /proc/cpuinfo~*")
-  #-linux 1
-  #-multithreading 1)
+  #+linux (run-line*-integer-output "grep -c ^processor /proc/cpuinfo~*")
+  #-linux 1)
 (defun convert (&key image output zip)
   "Convert the zip to video."
   ;; ~A for the download directory, ~:*~A after the first.
-  ;; KLUDGE: Better to do a PART 1, PART 2, ETC system, since books are often >12 hours.
   ;; KLUDGE: if there is more than one zip 
   ;; KLUDGE: rm returns error code 1 for some reason, causing continuations.
   ;;         I would rather log those and automatically continue.
@@ -42,7 +35,7 @@
 					(minutes seconds)
 					(seconds seconds)))
 		     (run-line* (format nil "ffmpeg -i ~~Atemp.mp4 -i ~~:*~~Aoutput1.mp3 -c copy ~A"
-					output))
+				       output))
 		     (run-line* "rm ~Atemp.mp4")
 		     (run-line* "rm ~A*.mp3")
 		     (run-line* "rm ~Aconcat.txt")))))
@@ -50,9 +43,3 @@
 #|(bash:convert :image "abe_mawruss_1807.jpg" 
 	      :output "final-test-probably1.mp4"
 	      :zip "abeandmawruss_1807_librivox.zip")|#
-
-(if (= 1 *max-threads*)
-    ;; No multithreading: One book at a time.
-    (parse-feed (http-request *url*))
-    ;; Multithreading: One thread per book method.
-    ())
