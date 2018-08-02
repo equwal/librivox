@@ -1,8 +1,8 @@
 (defpackage :utils
   (:use :cl :cl-user)
-  (:export :remove-after :nth-digit))
+  (:export :remove-after :nth-digit :mvbind :dbind))
 (defpackage :html-parser
-  (:use :cl :cl-ppcre :trivia :utils)
+  (:use :cl :cl-ppcre :utils)
   (:import-from :cl-ppcre :scan-to-strings)
   (:import-from :utils :dbind :mvbind))
 (defpackage :bash
@@ -19,7 +19,6 @@
 	#-cl+ssl-broken :drakma
 	#+cl+ssl-broken :workaround
 	:utils
-	:feedparser
 	:html-parser)
   #-cl+ssl-broken (:import-from cl+ssl-broken :drakma :http-request)
   #+cl+ssl-broken (:import-from :workaround :http-request)
