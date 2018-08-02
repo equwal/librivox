@@ -5,8 +5,16 @@
 	      #- multithreading 1)
 (defvar *url* "https://librivox.org/rss/latest_releases")
 
-(if (= 1 *max-threads*)
-    ;; No multithreading: One book at a time.
-    (parse-feed (http-request *url*))
-    ;; Multithreading: One thread per book method.
-    ())
+(defun main-loop ()
+    (if (= 1 *max-threads*)
+	;; No multithreading: One book at a time.
+	(parse-feed (http-request *url*))
+	;; Multithreading: One thread per book method.
+	()))
+(defun rate (specification actual &optional (test #'eql))
+  (if (or (null specification) (null actual))
+      0
+      (if (and (consp (car specification)) (consp (car actual)))
+	  (rate (car specification) (car actual) test)
+	  (+ (if (funcall test (car specification) (car actual)) 1 0)
+	     (rate (cdr specification) (cdr actual) test)))))

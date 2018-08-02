@@ -22,7 +22,11 @@
   (cons left right))
 (defun make-tree (node1 node2)
   (cons node1 node2))
-
+(defun get-tree (id tree &optional (test #'equal))
+  (if (null tree) nil
+      (if (funcall test id (caar tree))
+	  (car tree)
+	  (get-tree id (cdr tree) test))))
 (defun make-datum (id text)
   (make-node id text))
 (defun html->lispy (html-string)
@@ -35,3 +39,4 @@
 								   :inside t)))
 		       (html->lispy (content-of tag-of html-string :after t)))
 	    html-string))))
+

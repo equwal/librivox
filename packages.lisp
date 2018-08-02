@@ -4,7 +4,8 @@
 (defpackage :html-parser
   (:use :cl :cl-ppcre :utils)
   (:import-from :cl-ppcre :scan-to-strings)
-  (:import-from :utils :dbind :mvbind))
+  (:import-from :utils :dbind :mvbind)
+  (:export :html->lispy))
 (defpackage :bash
   (:use :cl :uiop)
   (:export :run-line
@@ -48,6 +49,7 @@
   (:import-from :rss :parse-feed
 		:update
 		:update!)
+  (:import-from :html-parser :html->lispy)
   (:import-from :utils :nth-digit)
   (:import-from :bash :run-line :*bash-output*)
   (:import-from :bordeaux-threads
