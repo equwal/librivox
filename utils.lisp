@@ -1,7 +1,0 @@
-(in-package :utils)
-(defun remove-after (item list &key (test #'eql))
-  (subseq list (search (list item) list :test test)))
-(defun nth-digit (digit number base)
-  (if (= 0 digit)
-      (mod number base)
-      (nth-digit (1- digit) (floor number base) base)))

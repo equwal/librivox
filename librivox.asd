@@ -3,14 +3,16 @@
 (asdf:defsystem :librivox
   :serial t
   :depends-on (#-cl+ssl-broken :drakma
-			       :cl-feedparser
+			       :cl-ppcre
 			       :uiop
 			       :bordeaux-threads)
   :description "Librivox auto downloader/youtube uploader."
   :components ((:file "packages")
-	       (:file "utils")
+	       (:file "src/utils")
+	       (:file "src/html-parse")
 	       (:file "src/bash")
 	       (:file "src/workaround")
+	       (:file "src/rss")
 	       (:file "src/ffmpeg")
 	       (:file "src/librivox")))
 
