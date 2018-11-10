@@ -1,57 +1,28 @@
 (defpackage :utils
   (:use :cl :cl-user)
-  (:export :remove-after :nth-digit :mvbind :dbind))
-(defpackage :html-parser
-  (:use :cl :cl-ppcre :utils)
-  (:import-from :cl-ppcre :scan-to-strings)
-  (:import-from :utils :dbind :mvbind)
-  (:export :html->lispy))
+  (:export ::mvbind :dbind :list-directory :dolines
+	   :with-gensyms :once-only :aif :awhen))
 (defpackage :bash
   (:use :cl :uiop)
   (:export :run-line
+	   :run-line-integer-output
 	   :*bash-output*))
 (defpackage :workaround
   (:use :cl :bash)
   (:import-from :bash
 		:run-line)
   (:export :http-request))
-(defpackage :rss
-  (:use :cl
-	#-cl+ssl-broken :drakma
-	#+cl+ssl-broken :workaround
-	:utils
-	:html-parser)
-  #-cl+ssl-broken (:import-from cl+ssl-broken :drakma :http-request)
-  #+cl+ssl-broken (:import-from :workaround :http-request)
-  (:import-from :utils :remove-after)
-  (:export :update!
-	   :update
-	   :parse-feed))
-(defpackage :youtube
-  (:use :cl
-	#+cl+ssl-broken :workaround
-	#-cl+ssl-broken :drakma
-	:utils
-	:html-parser)
-  (:import-from #+cl+ssl-broken :workaround
-		#-cl+ssl-broken :drakma
-		:http-request))
-
 (defpackage :librivox
   (:use :cl
 	;; Workaround for cl+ssl not working
 	#+cl+ssl-broken :workaround
 	#-cl+ssl-broken :drakma
-	:html-parser
-	:utils :uiop :youtube :rss :bordeaux-threads)
+	:utils :uiop :bordeaux-threads)
   #+cl+ssl-broken (:import-from :workaround :http-request)
   #-cl+ssl-broken (:import-from :drakma :http-request)
-  (:import-from :rss :parse-feed
-		:update
-		:update!)
-  (:import-from :html-parser :html->lispy)
-  (:import-from :utils :nth-digit)
-  (:import-from :bash :run-line :*bash-output*)
+  (:import-from :utils :list-directory :mvbind :dbind :dolines
+		:with-gensyms :once-only :aif :awhen)
+  (:import-from :bash :run-line :*bash-output* :run-line-integer-output)
   (:import-from :bordeaux-threads
 		:make-thread
 		:make-lock

@@ -9,10 +9,8 @@
   :description "Librivox auto downloader/youtube uploader."
   :components ((:file "packages")
 	       (:file "src/utils")
-	       (:file "src/html-parse")
 	       (:file "src/bash")
 	       (:file "src/workaround")
-	       (:file "src/rss")
 	       (:file "src/ffmpeg")
 	       (:file "src/librivox")))
 

@@ -6,3 +6,6 @@ Foreign command line applications:
 In your lisp:
 `Quicklisp`
 `The LATEST CL+SSL, from the source repo. Quicklisp might not work.`
+If CL+SSL doesn't work,
+`curl`
+command line application can be used as a workaround.
