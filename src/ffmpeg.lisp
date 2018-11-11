@@ -20,31 +20,38 @@
        (setf *downloads-dir* ,dir)
        ,@body
        (setf *downloads-dir* ,old))))
+(defmacro unwind-prog1 (cleanup &body protected)
+  `(unwind-protect (progn ,@protected) ,cleanup))
 (defun convert (&key image input (dir *downloads-dir*))
   "Convert the zip to video."
-  (unwind-protect
-       (with-dir dir
-	 (m3u-down input)
-	 (run-line* "for f in *.mp3; do echo \"file '$f'\" >> concat.txt; done")
-	 (run-line* "ffmpeg -f concat -safe 0 -i concat.txt -c copy output1.mp3")
-	 (let ((seconds (run-line*-integer-output "mp3info -p \"%S\" output1.mp3")))
-	   (if (>= *max-seconds* seconds)
-	       (progn (run-line* (format nil "ffmpeg -loop 1 -i ~A -t ~D -c mjpeg temp.mp4" ;
-					 image seconds))
-		      (run-line* (format nil "ffmpeg -i temp.mp4 -i output1.mp3 -c copy output.mp4")))
-	       (mvbind (times rem) (ceiling (/ seconds 4200))
-		       (let ((rem (1+ rem)))
-			 (dotimes (n times)
-			   (let ((duration (if (= times (1+ n))
-					       (* rem *max-seconds*)
-					       *max-seconds*)))
-			     (run-line* (format nil "ffmpeg -loop 1 -i ~A -t ~D -c mjpeg temp-~D.mp4"
-						image duration n))
-			     (run-line* (format nil "ffmpeg -ss ~D -t ~D -i output1.mp3 -c copy output-~D.mp3"
-						(* n *max-seconds*) duration n)))))))))
-    (progn (run-line* "rm temp*.mp4")
-	 (run-line* "rm *.mp3")
-	 (run-line* "rm concat.txt"))))
+  (let ((old-dir *downloads-dir*))
+    (setf *downloads-dir* dir)
+    (unwind-prog1
+     (progn (run-line* "rm temp.mp4")
+	    (run-line* "rm *.mp3")
+	    (run-line* "rm concat.txt")
+	    (setf *downloads-dir* old-dir))
+     (m3u-down input)
+     (run-line* "for f in *.mp3; do echo \"file '$f'\" >> concat.txt; done")
+     (run-line* "ffmpeg -f concat -safe 0 -i concat.txt -c copy output1.mp3")
+     (let ((seconds (run-line*-integer-output "mp3info -p \"%S\" output1.mp3")))
+       (if (>= *max-seconds* seconds)
+	   (progn (run-line* (format nil "ffmpeg -loop 1 -i ~A -t ~D -c mjpeg temp.mp4" ;
+				     image seconds))
+		  (run-line* (format nil "ffmpeg -i temp.mp4 -i output1.mp3 -c copy output.mp4")))
+	   (mvbind (times rem) (ceiling (/ seconds 4200))
+		   (let ((rem (1+ rem)))
+		     (dotimes (n times)
+		       (let ((duration (if (= times (1+ n))
+					   (* rem *max-seconds*)
+					   *max-seconds*)))
+			 (run-line* (format nil "ffmpeg -loop 1 -i ~A -t ~D -c mjpeg temp-~D.mp4"
+					    image duration n))
+			 (run-line* (format nil "ffmpeg -ss ~D -t ~D -i output1.mp3 -c copy output-~D.mp3"
+					    (* n *max-seconds*) duration n))
+			 (run-line* (format nil "ffmpeg -i temp-~D.mp4 -i output-~:*~D.mp3 -c copy output-~:*~D.mp4"
+					    n))
+			 (run-line* (format nil "rm temp-~D.mp4" n)))))))))))
 (defun pathname-type? (path type)
   (string-equal (pathname-type path) type))
 (defun image-type? (path)

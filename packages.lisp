@@ -1,6 +1,6 @@
 (defpackage :utils
   (:use :cl :cl-user)
-  (:export ::mvbind :dbind :list-directory :dolines
+  (:export :mvbind :dbind :list-directory :dolines
 	   :with-gensyms :once-only :aif :awhen))
 (defpackage :bash
   (:use :cl :uiop)
