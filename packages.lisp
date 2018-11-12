@@ -1,7 +1,10 @@
 (defpackage :utils
   (:use :cl :cl-user)
-  (:export :mvbind :dbind :list-directory :dolines
+  (:export :mvbind :dbind :list-directory :dolines :doread :push-on
 	   :with-gensyms :once-only :aif :awhen))
+(defpackage :csv
+  (:use :cl :utils)
+  (:import-from :utils :push-on :with-gensyms :make-reader :doread))
 (defpackage :bash
   (:use :cl :uiop)
   (:export :run-line
