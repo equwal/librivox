@@ -1,10 +1,6 @@
-(defpackage :utils
-  (:use :cl :cl-user)
-  (:export :mvbind :dbind :list-directory :dolines :doread :push-on
-	   :with-gensyms :once-only :aif :awhen))
 (defpackage :csv
   (:use :cl :utils)
-  (:import-from :utils :push-on :with-gensyms :make-reader :doread))
+  (:import-from :utils :push-on :with-gensyms :make-reader :doread :dolines))
 (defpackage :bash
   (:use :cl :uiop)
   (:export :run-line
@@ -23,9 +19,10 @@
 	:utils :uiop :bordeaux-threads)
   #+cl+ssl-broken (:import-from :workaround :http-request)
   #-cl+ssl-broken (:import-from :drakma :http-request)
-  (:import-from :utils :list-directory :mvbind :dbind :dolines
+  (:import-from :utils :mvbind :dbind :dolines
 		:with-gensyms :once-only :aif :awhen)
   (:import-from :bash :run-line :*bash-output* :run-line-integer-output)
+  (:import-from :uiop :subdirectories :directory-files)
   (:import-from :bordeaux-threads
 		:make-thread
 		:make-lock

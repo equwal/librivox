@@ -5,10 +5,10 @@
   :depends-on (#-cl+ssl-broken :drakma
 			       :cl-ppcre
 			       :uiop
-			       :bordeaux-threads)
+			       :bordeaux-threads
+			       :utils)
   :description "Librivox auto downloader/youtube uploader."
   :components ((:file "packages")
-	       (:file "src/utils")
 	       (:file "src/csv")
 	       (:file "src/bash")
 	       (:file "src/workaround")

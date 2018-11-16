@@ -12,8 +12,9 @@
   (parse-integer (run-program (change-dir *downloads-dir* code)
 			      :output :string) :junk-allowed t))
 (defun m3u-down (path)
-  (dolines (line path)
-      (run-line* (format nil "wget -nc ~A" line)) (print line)))
+  (with-open-file (s path)
+    (dolines (line s)
+      (run-line* (format nil "wget -nc ~A" line)) (print line))))
 (defmacro with-dir (dir &body body)
   (with-gensyms (old)
     `(let ((,old ,*downloads-dir*))
@@ -27,7 +28,7 @@
   (let ((old-dir *downloads-dir*))
     (setf *downloads-dir* dir)
     (unwind-prog1
-     (progn (run-line* "rm temp.mp4")
+     (progn (run-line* "rm *.mp4")
 	    (run-line* "rm *.mp3")
 	    (run-line* "rm concat.txt")
 	    (setf *downloads-dir* old-dir))
@@ -61,11 +62,10 @@
 	  car
 	  (select pred (cdr list))))))
 (defun convert-all ()
-  (dolist (downdir (list-directory *downloads-dir*))
-    (dolist (dir (list-directory downdir))
-      (let ((contents (list-directory dir)))
-	(when (not (some #'video-type?
+  (dolist (dir (subdirectories *downloads-dir*))
+    (let ((contents (directory-files dir)))
+      (when (not (some #'video-type?
 		       contents))
-	    (convert :image (select #'image-type? contents)
-		     :input (select #'archive-type? contents)
-		     :dir downdir))))))
+	(convert :image (select #'image-type? contents)
+		 :input (select #'archive-type? contents)
+		 :dir dir)))))
