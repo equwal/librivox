@@ -55,12 +55,6 @@
   (some #'(lambda (x) (string-equal (pathname-type path) x)) *archive-types*))
 (defun video-type? (path)
   (some #'(lambda (x) (string-equal (pathname-type path) x)) *video-types*))
-(defun select (pred list)
-  (when (consp list)
-    (let ((car (car list)))
-      (if (funcall pred car)
-	  car
-	  (select pred (cdr list))))))
 (defun convert-all ()
   (dolist (dir (subdirectories *downloads-dir*))
     (let ((contents (directory-files dir)))
