@@ -7,3 +7,5 @@
 *.png
 *.gif
 *.zip
+downloads/**
+downloads
