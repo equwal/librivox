@@ -1,13 +1,17 @@
 (in-package :librivox)
+(defvar *recent* #p"recent.csv")
 (defun start ()
   "Just start everything: download, convert, upload."
-  (csv-expand (csv-update) :forward t)
   (convert-all))
-
-(defun csv-update ()
-  "Get a new CSV to keep up with recent audiobook publishing.")
-(defun csv-expand (&key forward)
-  "Convert a CSV of librivox audiobooks into a directory tree filled with files
-to be used in the downloading and conversion portions. `FORWARD' determines if
-the directory tree is being made fresh -> nil or just updated -> t. "
-  )
+(defmacro sleep-repeat (seconds &body code)
+  `(progn (sleep ,seconds)
+          ,@code))
+(defun await-upload (&optional (wait-period 1))
+  "If everything is caught up, wait and recheck."
+  (labels ((waiter (prev-down)
+             (progn (let ((latest (progn (update *recent*)
+                                         (recent-identifier *recent*))))
+                      (if (string= latest prev-down)
+                          (progn (format t "Nothing left to do. Waiting for ~D seconds before rechecking for work." wait-period)
+                                 (sleep-repeat wait-period (waiter prev-down))))))))
+    (waiter (recent-identifier *recent*))))

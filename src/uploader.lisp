@@ -12,7 +12,7 @@
   "Generate a proper bash call for paired keywords."
   (labels ((inner (keywords first acc)
              (if (null keywords)
-                 ""
+                 acc
                  (if first
                      (inner (cdr keywords) nil (car keywords))
                      (inner (cdr keywords) nil (concatenate 'string
