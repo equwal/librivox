@@ -78,6 +78,8 @@
   (uiop:run-program code :output output :ignore-error-status ignore-error-status))
 (defun change-dir (dir code)
   (format nil "cd ~A && ~A" dir code))
+(defun mkdir (path)
+  (run-line (format nil "mkdir ~A" path)))
 (defmacro mapfns ((&rest args) &rest fns)
   "Map over functions in order with the same args. Return last."
   (with-gensyms (save prev fnl)
@@ -111,3 +113,7 @@
   (if (consp thing)
       (list thing)
       thing))
+(defmacro dodir ((var dir &key files dirs) &body body)
+  `(dolist (,var (cond (dirs (subdirectories ,dir))
+                       (files (directory-files ,dir))))
+     ,@body))

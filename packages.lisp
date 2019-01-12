@@ -1,7 +1,9 @@
 (defpackage :utils
   (:use :cl :uiop)
   (:export
+   :mkdir
    :symb
+   :dodir
    :pack
    :only-one
    :mkstr
@@ -49,7 +51,8 @@
    :expand)
   (:import-from
    :utils
-   :only-one
+   :mkdir
+   :dodir
    :mvbind :dbind :dolines
    :with-gensyms
    :once-only

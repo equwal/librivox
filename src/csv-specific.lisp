@@ -25,10 +25,12 @@
         ((and (not forward) all) )
         (t
          (error "Unable to generate a CSV query. Please specify :all or :forward in args"))))
-(defun expand (csv dir)
+(defun expand (path dir)
   "Convert a CSV of librivox audiobooks into a directory tree filled with files
 to be used in the downloading and conversion portions."
-  (with-open-file (s)
-    ()))
+  (let ((len (length-lines path)))
+    (loop for x from 0 to (1- len)
+          do (mkdir (merge-pathnames *downloads-dir*
+                                     (nthidentifier x path))))))
 (defun update (path &key (forward t))
   (mapfns (path forward) #'update-file #'expand))
