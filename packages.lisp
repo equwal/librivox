@@ -2,6 +2,7 @@
   (:use :cl :uiop)
   (:export
    :mkdir
+   :interpol
    :symb
    :dodir
    :pack
@@ -19,6 +20,7 @@
    :length-lines
    :change-dir
    :run-line
+   :defcollect
    :mapfns))
 (defpackage :workaround
   (:use :cl :utils)
@@ -26,8 +28,9 @@
   (:export :http-request))
 (defpackage :csv-specific
   (:use :cl :utils :csv :workaround)
-  (:import-from :utils :only-one :nthline :mapfns :symb)
+  (:import-from :utils :only-one :nthline :mapfns :symb :defcollect)
   (:import-from :workaround :http-request)
+  (:import-from :csv :list->csv)
   (:export
    :nthidentifier
    :nthdescription
@@ -52,6 +55,7 @@
   (:import-from
    :utils
    :mkdir
+   :interpol
    :dodir
    :mvbind :dbind :dolines
    :with-gensyms
