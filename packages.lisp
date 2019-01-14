@@ -1,6 +1,14 @@
+(defpackage :early
+  (:use :cl)
+  (:export :*downloads-dir*))
 (defpackage :utils
-  (:use :cl :uiop)
+  (:use :cl :uiop :early)
+  (:import-from :early :*downloads-dir*)
   (:export
+   :compose
+   :run-line*
+   :run-line*-integer-output
+   :wget
    :concat
    :flatten
    :select
@@ -15,6 +23,7 @@
    :mvbind
    :dbind
    :dolines
+   :group
    :with-gensyms
    :once-only
    :aif
@@ -26,16 +35,19 @@
    :defcollect
    :mapfns))
 (defpackage :workaround
-  (:use :cl :utils)
+  (:use :cl :utils :early)
+  (:import-from :early :*downloads-dir*)
   (:import-from :utils :run-line)
   (:export :http-request))
-(defpackage :csv-specific
-  (:use :cl :utils :csv :workaround :query)
-  (:import-from :utils :length-lines :only-one :mapfns :symb :defcollect)
+(defpackage :api
+  (:use :cl :utils :csv :workaround :query :early)
+  (:import-from :utils :compose :group :length-lines :only-one :mapfns :symb :defcollect)
+  (:import-from :early :*downloads-dir*)
   (:import-from :workaround :http-request)
   (:import-from :query :{ :& :?)
   (:import-from :csv :list->csv)
   (:export
+   :librivox-pull
    :nthid
    :nthtitle
    :nthdescription
@@ -50,12 +62,13 @@
 	;; Workaround for cl+ssl not working
 	#+cl+ssl-broken :workaround
 	#-cl+ssl-broken :drakma
-	:utils :uiop :csv-specific :query)
+	:utils :uiop :query :xmls :api)
   #+cl+ssl-broken (:import-from :workaround :http-request)
   #-cl+ssl-broken (:import-from :drakma :http-request)
+  (:import-from :xmls :parse)
   (:import-from :query :? :& :{ :csvs :search-keys :escape :escapes)
   (:import-from
-   :csv-specific
+   :api
    :nthid
    :nthtitle
    :nthdescription
@@ -64,9 +77,14 @@
    :nthtotaltimeseconds
    :nthauthors
    :update
-   :expand)
+   :expand
+   :librivox-pull)
+  (:import-from :early :*downloads-dir*)
   (:import-from
    :utils
+   :run-line*
+   :run-line*-integer-output
+   :wget
    :flatten
    :select
    :concat

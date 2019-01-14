@@ -1,6 +1,5 @@
 (in-package :librivox)
 (defvar *recent* #p"recent.csv")
-(defvar *downloads-dir* "/run/media/raw-downloads/")
 (defun start (&key (forward t))
   "Just start everything: download, convert, upload."
   (dodir (dir *downloads-dir* :dirs t)
@@ -31,7 +30,7 @@
 (defun await-upload (&optional (wait-period 5))
   "If everything is caught up, wait and recheck."
   (labels ((waiter (prev-down)
-             (if (string= (progn (csv-specific:update *recent*)
+             (if (string= (progn (update *recent*)
                                  (nthid 0 *recent*))
                           prev-down)
                  (progn (format t
