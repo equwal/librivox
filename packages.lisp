@@ -16,7 +16,6 @@
    :aif
    :awhen
    :select
-   :nthline
    :length-lines
    :change-dir
    :run-line
@@ -28,7 +27,7 @@
   (:export :http-request))
 (defpackage :csv-specific
   (:use :cl :utils :csv :workaround)
-  (:import-from :utils :only-one :nthline :mapfns :symb :defcollect)
+  (:import-from :utils :only-one :mapfns :symb :defcollect)
   (:import-from :workaround :http-request)
   (:import-from :csv :list->csv)
   (:export
@@ -42,9 +41,10 @@
 	;; Workaround for cl+ssl not working
 	#+cl+ssl-broken :workaround
 	#-cl+ssl-broken :drakma
-	:utils :uiop :csv-specific)
+	:utils :uiop :csv-specific :query)
   #+cl+ssl-broken (:import-from :workaround :http-request)
   #-cl+ssl-broken (:import-from :drakma :http-request)
+  (:import-from :query :? :& :{ :csvs :search-keys :escape :escapes)
   (:import-from
    :csv-specific
    :nthidentifier

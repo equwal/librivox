@@ -6,6 +6,7 @@
                :drakma
 	       :cl-ppcre
                :uiop
+               :query
                :bordeaux-threads
                :csv)
   :description "Librivox auto downloader/youtube uploader."
@@ -18,4 +19,3 @@
                (:file "src/uploader")
                (:file "src/csv-specific")
 	       (:file "src/librivox")))
-

@@ -53,27 +53,6 @@
 (abbrev dbind destructuring-bind)
 (defun list-directory (directory)
   (directory (merge-pathnames "*.*" directory)))
-(defun length-lines (path)
-  "Count up the number of lines in PATH."
-  (with-open-file (s path)
-    (labels ((inner (n)
-               (if (read-line s nil nil nil)
-                   (inner (1+ n))
-                   n)))
-      (inner 0))))
-(defun nthline (n path &key from-end)
-  "A line from path. Can also count backwards."
-  (with-open-file (s path)
-    (labels ((inner (line c)
-               (if (> 0 c)
-                   line
-                   (let ((res (read-line s nil nil nil)))
-                     (if res
-                         (inner res (1- c))
-                         (warn "End of file in ~A." path))))))
-      (inner 0 (if from-end
-                   (- (1- (length-lines path)) n)
-                   n)))))
 (defun run-line (code &key (output t) (ignore-error-status t))
   (uiop:run-program code :output output :ignore-error-status ignore-error-status))
 (defun change-dir (dir code)
@@ -114,9 +93,10 @@
       (list thing)
       thing))
 (defmacro dodir ((var dir &key files dirs) &body body)
-  `(dolist (,var (cond (dirs (subdirectories ,dir))
-                       (files (directory-files ,dir))))
-     ,@body))
+  (once-only (dir)
+    `(dolist (,var (cond (,dirs (subdirectories ,dir))
+                         (,files (directory-files ,dir))))
+       ,@body)))
 (defun shuffle (x y &key (key-x #'identity) (key-y #'identity))
   "Interpolate lists x and y with the first item being from x."
   (cond ((null x) y)

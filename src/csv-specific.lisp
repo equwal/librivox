@@ -3,23 +3,15 @@
 (defvar *down* nil)
 (defvar *temp* #p"/tmp/librivox-temp")
 (defvar *last-update* #p"last-update.txt")
-(defvar +epoch-offset+ 2208988800)
-(defvar *fields*
-  '("id"
-    "title"
-    "description"
-    "language"
-    "url_zip_file"
-    "totaltimeseconds"
-    "authors"))
-(defcollect nthfields nthfield 2)
-(nthfields id first
-           title second
-           description third
-           language fourth
-           url-zip-file fifth
-           totaltimeseconds sixth
-           authors seventh)
+(defvar +epoch-offset+ 2208988800 "Seconds between Jan 1st 1900 (the universal epoch) and Jan 1st 1970 (the Unix epoch)")
+
+(nthfields (id title description language url_zip_file totaltimeseconds authors))
+(defmacro nthfields (var)
+  `(progn ,@(loop for x from 0 to (1- (funcall #'length var))
+                  collect `(nthfield ',(nth x var)
+                                     (lambda (list) (nth ,x list))))))
+;;; (progn (nthfield 'id (lambda (list) (nth 0 list))) ...)
+
 (defun update-file (path)
   "Get a new CSV to keep up with recent audiobook publishing."
   (with-open-file (s path :direction :output
@@ -32,7 +24,7 @@
                "https://librivox.org/api/feed/audiobooks/"
                (? selector value)
                (if fields
-                   (& :fields ({ (csvs fields)))
+                   (& :fields ({ (csvs (apply #'symbol-name fields))))
                    "")
                (& :format format)))
 
