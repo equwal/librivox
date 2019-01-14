@@ -1,7 +1,11 @@
 (defpackage :utils
   (:use :cl :uiop)
   (:export
+   :concat
+   :flatten
+   :select
    :mkdir
+   :length-lines
    :interpol
    :symb
    :dodir
@@ -26,14 +30,19 @@
   (:import-from :utils :run-line)
   (:export :http-request))
 (defpackage :csv-specific
-  (:use :cl :utils :csv :workaround)
-  (:import-from :utils :only-one :mapfns :symb :defcollect)
+  (:use :cl :utils :csv :workaround :query)
+  (:import-from :utils :length-lines :only-one :mapfns :symb :defcollect)
   (:import-from :workaround :http-request)
+  (:import-from :query :{ :& :?)
   (:import-from :csv :list->csv)
   (:export
-   :nthidentifier
-   :nthdescription
+   :nthid
    :nthtitle
+   :nthdescription
+   :nthlanguage
+   :nthurl_zip_file
+   :nthtotaltimeseconds
+   :nthauthors
    :update
    :expand))
 (defpackage :librivox
@@ -47,13 +56,20 @@
   (:import-from :query :? :& :{ :csvs :search-keys :escape :escapes)
   (:import-from
    :csv-specific
-   :nthidentifier
-   :nthdescription
+   :nthid
    :nthtitle
+   :nthdescription
+   :nthlanguage
+   :nthurl_zip_file
+   :nthtotaltimeseconds
+   :nthauthors
    :update
    :expand)
   (:import-from
    :utils
+   :flatten
+   :select
+   :concat
    :mkdir
    :interpol
    :dodir
@@ -63,7 +79,6 @@
    :aif
    :awhen
    :select
-   :nthline
    :length-lines
    :change-dir
    :run-line)

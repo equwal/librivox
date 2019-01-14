@@ -15,6 +15,14 @@
 	     (,var #2=(elt ,line ,count) #2#))
 	    ((= (1- ,len) ,count))
 	 ,@body))))
+(defun length-lines (path)
+  "Count up the number of lines in PATH."
+  (with-open-file (s path)
+    (labels ((inner (n)
+               (if (read-line s nil nil nil)
+                   (inner (1+ n))
+                   n)))
+      (inner 0))))
 (defmacro once-only ((&rest names) &body body)
   "A macro-writing utility for evaluating code only once."
   (let ((gensyms (loop for n in names collect (gensym))))
@@ -129,3 +137,29 @@ of this is setf/setq: (setf a b c d) -> (setf a b) (setf c d)"
        `(progn ,@(loop for ,x in (group ,args ,argn)
                        collect (cons ',collector ,x))))))
 ;;; (setf *x* 1) (setf *y* 2)
+(defun flatten (x)
+  (labels ((rec (x acc)
+             (cond ((null x) acc)
+                   ((atom x) (cons x acc))
+                   (t (rec (car x) (rec (cdr x) acc))))))
+    (rec x nil)))
+(defun select (fn lst)
+  "Return the first element that matches the function."
+  (if (null lst)
+      nil
+      (let ((val (funcall fn (car lst))))
+        (if val
+            (values (car lst) val)
+            (select fn (cdr lst))))))
+(defun concat (type &rest list-or-string)
+  "Flatten before concatenating the inputs."
+  (labels ((concatenate-list (type list)
+             "For flat lists."
+             (labels ((inner (type list acc)
+                        (if (null list)
+                            acc
+                            (inner type
+                                   (cdr list)
+                                   (concatenate type acc (car list))))))
+               (inner type list ""))))
+    (concatenate-list type (flatten list-or-string))))
