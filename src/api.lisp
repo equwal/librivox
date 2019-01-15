@@ -70,68 +70,48 @@ to be used in the downloading and conversion portions."
   (let ((before (get-epoch-time)))
     (mapfns (path forward) #'update-file #'expand)
     (save-time *last-update* before)))
-(defun splist (sep str)
-  "Splice a string 'SPliceLIST' into a list across a separator string."
-  (labels ((inner (str acc)
-             (if (string= "" str)
-                 (nreverse acc)
-                 (let ((r (search sep str)))
-                   (if r
-                       (inner (subseq str (1+ r))
-                              (push (subseq str 0 r) acc))
-                       (nreverse (push str acc)))))))
-    (inner str nil)))
-(defwasher wash1 (:csv :xml)
-  ((csv (csv) csv)
-   (xml (xml)
-        (cl-ppcre:regex-replace "&.*?;" xml " "))))
-(defwasher wash2 (:csv :xml)
-  ((csv (csv) (mapcar #'(lambda (s) (splist "," s))
-                      (splist (format nil "~%") csv)))
-   (xml (xml) )))
-(defun wash (type code)
-  "Just cleanup the code to be uniform."
-  (wash2 type (wash1 type code)))
-(defmacro quot (list)
-  `(identity ',(loop for l in list
-                     collect `(quote ,l))))
-(defun make-wash (&rest fns)
-  (defun wash (type code)
-    (funcall (apply #'partial-1 type fns) code)))
-#|(defwashers
-((csv (csv) csv) ;; first washers
-(xml (xml)
-(cl-ppcre:regex-replace "&.*?;" xml " ")))
-((csv (csv) (mapcar #'(lambda (s) (splist "," s)) ;; second washer
-(splist (format nil "~%") csv)))
-(xml (xml) xml)))|#
 (defun types (washers)
   "Generate a type list from the function names of the washers."
   (loop for w in washers
         collect (intern (symbol-name (car w)) (symbol-package :bogus))))
-(defun genlist (len)
-  (loop repeat len collect (gensym)))
-(defmacro defwashers (&rest washers)
-  (let ((gensyms (loop for x from 1 to (length washers)
-                       collect (symb 'wash x))))
-    `(progn ,@(loop for g in gensyms
-                    for w in washers
-                    collect `(defwasher ,g ,(types w) ,w))
-            (apply #'make-wash ',(reverse gensyms)))))
-#|(let ((,wash1 (gensym))
-(,wash2 (gensym))) (defun wash (type code)
-(funcall (compose #:Gwash1 #:Gwash2...)))
-(defun #:Gwash1 (...)...)
-(defun #:Gwash2 (...) ...))|#
-(defmacro defwasher (name types fns)
-  "Localised functions for washing inputs."
-  (with-gensyms (type str)
-    `(setf (symbol-function ',name)
-           (lambda (,type ,str)
-             (labels ,(loop for f in fns
-                            collect (cons (symb 'wash- (car f))
-                                          (cdr f)))
-               (case ,type
-                 ,@(loop for ty in types
-                         collect (list ty
-                                       (list (symb 'wash- ty) str)))))))))
+(flet ((make-wash (&rest fns)
+         (defun wash (type code)
+           (funcall (apply #'partial-1 type fns) code)))
+       (splist (sep str)
+         "Splice a string 'SPliceLIST' into a list across a separator string."
+         (labels ((inner (str acc)
+                    (if (string= "" str)
+                        (nreverse acc)
+                        (let ((r (search sep str)))
+                          (if r
+                              (inner (subseq str (1+ r))
+                                     (push (subseq str 0 r) acc))
+                              (nreverse (push str acc)))))))
+           (inner str nil))))
+  (macrolet ((defwasher (name types fns)
+               "Localised functions for washing inputs."
+               (with-gensyms (type str)
+                 `(setf (symbol-function ',name)
+                        (lambda (,type ,str)
+                          (labels ,(loop for f in fns
+                                         collect (cons (symb 'wash- (car f))
+                                                       (cdr f)))
+                            (case ,type
+                              ,@(loop for ty in types
+                                      collect (list ty
+                                                    (list (symb 'wash- ty) str)))))))))
+             (defwashers (&rest washers)
+               (let ((gensyms (loop for x from 1 to (length washers)
+                                    collect (symb 'wash x))))
+                 `(progn ,@(loop for g in gensyms
+                                 for w in washers
+                                 collect `(defwasher ,g ,(types w) ,w))
+                         (apply #'make-wash ',(reverse gensyms))))))
+
+    (defwashers ;; Applied first to last. Use washers like an onion/filter.
+        ((csv (csv) (mapcar #'(lambda (s) (splist "," s))
+                            (splist (format nil "~%") csv)))
+         (xml (xml) xml))
+        ((csv (csv) csv)
+         (xml (xml)
+              (cl-ppcre:regex-replace "&.*?;" xml " "))))))
