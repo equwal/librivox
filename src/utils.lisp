@@ -180,3 +180,12 @@ of this is setf/setq: (setf a b c d) -> (setf a b) (setf c d)"
 	  (reduce #'funcall fns :from-end t
 		                :initial-value (apply fn1 args)))
 	#'identity)))
+(defun partial-1 (arg &rest fns)
+  "Partially apply the first argument to a list of composable functions."
+  (let ((fns (loop for f in fns
+                   collect (lambda (&rest args)
+                             (apply f arg args)))))
+    (lambda (&rest args)
+      (reduce #'funcall (butlast fns)
+              :from-end t
+              :initial-value (apply (car (last fns)) args)))))

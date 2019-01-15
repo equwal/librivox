@@ -5,6 +5,7 @@
   (:use :cl :uiop :early)
   (:import-from :early :*downloads-dir*)
   (:export
+   :partial-1
    :compose
    :run-line*
    :run-line*-integer-output
@@ -41,7 +42,7 @@
   (:export :http-request))
 (defpackage :api
   (:use :cl :utils :csv :workaround :query :early)
-  (:import-from :utils :compose :group :length-lines :only-one :mapfns :symb :defcollect)
+  (:import-from :utils :partial-1 :compose :group :length-lines :only-one :mapfns :symb :defcollect)
   (:import-from :early :*downloads-dir*)
   (:import-from :workaround :http-request)
   (:import-from :query :{ :& :?)
