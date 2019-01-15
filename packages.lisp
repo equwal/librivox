@@ -41,13 +41,15 @@
   (:import-from :utils :run-line)
   (:export :http-request))
 (defpackage :api
-  (:use :cl :utils :csv :workaround :query :early)
+  (:use :cl :utils :csv :cl-ppcre :workaround :query :early)
+  (:import-from :cl-ppcre :regex-replace :scan :regex-replace-all)
   (:import-from :utils :partial-1 :compose :group :length-lines :only-one :mapfns :symb :defcollect)
   (:import-from :early :*downloads-dir*)
   (:import-from :workaround :http-request)
   (:import-from :query :{ :& :?)
   (:import-from :csv :list->csv)
   (:export
+   :escape
    :librivox-pull
    :nthid
    :nthtitle
