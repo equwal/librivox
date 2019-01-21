@@ -49,7 +49,6 @@
   (:import-from :query :{ :& :?)
   (:import-from :csv :list->csv)
   (:export
-   :escape
    :librivox-pull
    :nthid
    :nthtitle
@@ -69,7 +68,7 @@
   #+cl+ssl-broken (:import-from :workaround :http-request)
   #-cl+ssl-broken (:import-from :drakma :http-request)
   (:import-from :xmls :parse)
-  (:import-from :query :? :& :{ :csvs :search-keys :escape :escapes)
+  (:import-from :query :? :& :{ :csvs :search-keys :escapes)
   (:import-from
    :api
    :nthid

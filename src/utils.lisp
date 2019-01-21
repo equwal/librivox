@@ -168,10 +168,10 @@ of this is setf/setq: (setf a b c d) -> (setf a b) (setf c d)"
 (defun run-line*-integer-output (code)
   (parse-integer (run-program (change-dir *downloads-dir* code)
 			      :output :string) :junk-allowed t))
-(defun wget (url &optional (args "-nc")
-                   (track-stream *standard-output*) (dir *downloads-dir*))
-  (run-line* (format nil "wget ~A ~A" args url) track-stream dir)
-  (print url track-stream))
+(defun wget (url &optional (stream *standard-output*) (tmp "/home/jose/wget-output"))
+  (run-line* (format nil "wget '~A' --output-document='~A'" url tmp))
+  (dolines (l tmp)
+    (format stream "~A~%" l)))
 (defun compose (&rest fns)
   (let ((fns (butlast fns))
 	(fn1 (car (last fns))))
@@ -180,12 +180,3 @@ of this is setf/setq: (setf a b c d) -> (setf a b) (setf c d)"
 	  (reduce #'funcall fns :from-end t
 		                :initial-value (apply fn1 args)))
 	#'identity)))
-(defun partial-1 (arg &rest fns)
-  "Partially apply the first argument to a list of composable functions."
-  (let ((fns (mapcar #'(lambda (f)
-                         (lambda (&rest args)
-                           (apply f arg args))) fns)))
-    (lambda (&rest args)
-      (reduce #'funcall (butlast fns)
-              :from-end t
-              :initial-value (apply (car (last fns)) args)))))

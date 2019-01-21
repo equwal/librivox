@@ -50,29 +50,6 @@
 (defun gen-map (pred list)
   "Make a mapping according to the sorting of the collection by the predicate."
   (gen-example-network list (sort (copy-list list) pred)))
-(defun make-wash (&rest fns)
-  (defun wash (type code)
-    (funcall (apply #'partial-1 type fns) code)))
-(defmacro defwasher (name types fns)
-  "Localised functions for washing inputs."
-  (with-gensyms (type str)
-    `(setf (symbol-function ',name)
-           (lambda (,type ,str)
-             (labels ,(loop for f in fns
-                            collect (cons (symb 'wash- (car f))
-                                          (cdr f)))
-               (case ,type
-                 ,@(loop for ty in types
-                         collect (list ty
-                                       (list (symb 'wash- ty) str)))
-                 (t ,str)))))))
-(defmacro defwashers (&rest washers)
-  (let ((gensyms (loop for x from 1 to (length washers)
-                       collect (symb 'wash x))))
-    `(progn ,@(loop for g in gensyms
-                    for w in washers
-                    collect `(defwasher ,g ,(types w) ,w))
-            (apply #'make-wash ',(reverse gensyms)))))
 (defun force-escape (str-or-escape)
   (if (escape-p str-or-escape)
       str-or-escape
@@ -172,3 +149,13 @@
     (y tree)))
 (defun flat (lst)
   (every #'atom lst))
+(defun tree-remove (val tree &key (test #'eql))
+  (if (null tree)
+      nil
+      (if (consp (car tree))
+          (cons (tree-remove val (car tree) :test test)
+                (tree-remove val (cdr tree) :test test))
+          (if (funcall test val (car tree))
+              (tree-remove val (cdr tree) :test test)
+              (cons (car tree)
+                    (tree-remove val (cdr tree) :test test))))))

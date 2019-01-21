@@ -1,29 +1,38 @@
 (in-package :api)
+(defun next-query (s v &key first)
+  (if (eql s :fields)
+      (if first
+          (? s ({ v))
+          (& s ({ v)))
+      (if first
+          (? s v)
+          (& s v))))
 (defun query (format &rest selector-value-pairs)
   "Produce a query to download the librivox content."
   (concat 'string
           *base-url*
-          (let ((s (car selector-value-pairs))
-                (v (cadr selector-value-pairs)))
-            (if (eql s :fields)
-                (? s ({ v))
-                (? s v)))
+          (next-query (car selector-value-pairs)
+                      (cadr selector-value-pairs)
+                      :first t)
           (& :format format)
-          (mapcar #'(lambda (p) (& (if (eql (car p) :fields)
-                                       ({ (car p))
-                                       (car p))
-                                   (cadr p)))
+          (mapcar #'(lambda (p)
+                      (next-query (car p) (cadr p)))
                   (cdr (group selector-value-pairs 2)))))
-(defun pull (since &optional (track-stream *standard-output*)
-                     (dir *downloads-dir*))
-  (wash :xml (wget (query :xml
-                          :since since
-                          :fields (mapcar (compose #'string-downcase
-                                                   #'symbol-name)
-                                          *fields*))
-                   "--no-verbose -O -"
-                   track-stream
-                   dir)))
+(defun syms->strs (syms)
+  (mapcar #'string-downcase (mapcar #'symbol-name syms)))
+(defmacro awhen (test then)
+  `(let ((it ,test))
+     (when it ,then)))
+(defun pull (since)
+  (awhen (wget (query :xml
+		      :since since
+		      :fields (syms->strs
+			       (set-difference
+				'(last_name first_name)
+				(cons 'authors *fields*)))))
+    (if (match "<error>.*</error>" it)
+	(values nil "Failed: error in XML.")
+	(funcall (wash :xml) it))))
 (defun expand (path dir)
   "Convert librivox audiobooks into a directory tree filled with files
 to be used in the downloading and conversion portions."
@@ -63,16 +72,12 @@ to be used in the downloading and conversion portions."
       (remove-duplicates (remove-if #'(lambda (s) (eql s g))
                                     (flatten (kludge-inner parsed g)))
                          :test #'string=))))
-(defun tree-remove (val tree &key (test #'eql))
-  (if (null tree)
+(defun find-tag (tag clean-xml)
+  (if (or (atom clean-xml) (null clean-xml))
       nil
-      (if (consp (car tree))
-          (cons (tree-remove val (car tree) :test test)
-                (tree-remove val (cdr tree) :test test))
-          (if (funcall test val (car tree))
-              (tree-remove val (cdr tree) :test test)
-              (cons (car tree)
-                    (tree-remove val (cdr tree) :test test))))))
+      (if (and (stringp (car clean-xml)) (string-equal tag (car clean-xml)))
+          (cadr clean-xml)
+          )))
 (defun destructure-book (book)
   ;; How does this mess work? (and how did I make it work?)
   (labels ((destructure-authors (authors)
@@ -100,26 +105,33 @@ to be used in the downloading and conversion portions."
                       (apply-map (gen-map #'string< (mapcar #'car book))
                                  (mapcar #'cadr book)))
                   books))))
-(washer
- ;; Applied first to last. Use washers like an onion/filter.
- (xml (raw)
-      (let ((match (match "&.*?;" (force-str raw))))
-        (if match
-            (wash1 :xml (escape match (force-escape raw)))
-            raw)))
- (xml (escaped) (cons (escape-tbl (force-escape escaped))
-                      (xmls:parse (force-str escaped)
-                                  :compress-whitespace nil)))
- (xml (parsed) (let ((tbl (car parsed))
-                     (xml (cdr parsed)))
-                 (mapatoms #'(lambda (str)
-                               (when str
-                                 (escape-str (unescape (make-escape
-                                                        :tbl tbl
-                                                        :str str)))))
-                           xml)))
- (xml (unescaped) (order-books (mapcar #'destructure-book
-                                       (cdadr (tree-remove nil unescaped)))))
- (csv (csv) (mapcar #'(lambda (s) (splist "," s))
-                    (splist (format nil "~%") csv)))
- (csv (csv) (order-fields csv)))
+(defmacro chain (args &rest transforms)
+  (let ((lambdas (loop for x in transforms
+                       collect `(lambda ,args ,x))))
+    `(lambda ,args
+       (funcall (compose ,@(reverse lambdas)) ,@args))))
+
+(defun wash (type)
+  (case type
+    (:csv (mapcar #'(lambda (s) (splist "," s))
+                  (splist (format nil "~%") csv)) string)
+    (:xml (chain (string)
+                 (labels ((self (string)
+                            (let ((match (match "&.*?;" (force-str string))))
+                              (if match
+                                  (self (escape match (force-escape string)))
+                                  string))))
+                   (self string))
+                 (cons (escape-tbl (force-escape string))
+                       (xmls:parse (force-str string)
+                                   :compress-whitespace nil))
+                 (let ((tbl (car string))
+                       (string (cdr string)))
+                   (mapatoms #'(lambda (str)
+                                 (when str
+                                   (escape-str (unescape (make-escape
+                                                          :tbl tbl
+                                                          :str str)))))
+                             string))
+                 (order-books (mapcar #'destructure-book
+                                      (cdadr (tree-remove nil string))))))))
