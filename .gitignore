@@ -9,3 +9,4 @@
 *.zip
 downloads/**
 downloads
+src/client_secrets.json

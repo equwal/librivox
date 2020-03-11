@@ -9,3 +9,5 @@ In your lisp:
 If CL+SSL doesn't work,
 `curl`
 command line application can be used as a workaround.
+
+A google console secret must be added to `src/client_secrets.json`
