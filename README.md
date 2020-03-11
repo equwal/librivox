@@ -1,3 +1,5 @@
+# Purpose
+Downloads audiobooks and images from [librivox](librivox.org), then makes a video and uploads it to youtube.
 # Requirements:
 Foreign command line applications:
 `mp3info`
